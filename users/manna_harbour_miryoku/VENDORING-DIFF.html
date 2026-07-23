@@ -1,0 +1,290 @@
+<title>Miryoku vendoring diff — miryoku_qmk vs qmk_userspace (2026-07)</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#656d76;--line:#d8dee4;--card:#f6f8fa;
+--add:#1a7f37;--del:#cf222e;--addbg:#e6ffec;--delbg:#ffebe9;--hunk:#eaeef2;
+--acc:#0969da;--warn:#9a6700;--warnbg:#fff8c5;--okbg:#dafbe1;}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--mut:#9198a1;
+--line:#30363d;--card:#161b22;--add:#3fb950;--del:#f85149;--addbg:#12261e;
+--delbg:#25171c;--hunk:#1c2128;--acc:#4493f8;--warn:#d29922;--warnbg:#272115;
+--okbg:#12261e;}}
+:root[data-theme=dark]{--bg:#0d1117;--fg:#e6edf3;--mut:#9198a1;--line:#30363d;
+--card:#161b22;--add:#3fb950;--del:#f85149;--addbg:#12261e;--delbg:#25171c;
+--hunk:#1c2128;--acc:#4493f8;--warn:#d29922;--warnbg:#272115;--okbg:#12261e;}
+:root[data-theme=light]{--bg:#fff;--fg:#1a1a1a;--mut:#656d76;--line:#d8dee4;
+--card:#f6f8fa;--add:#1a7f37;--del:#cf222e;--addbg:#e6ffec;--delbg:#ffebe9;
+--hunk:#eaeef2;--acc:#0969da;--warn:#9a6700;--warnbg:#fff8c5;--okbg:#dafbe1;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);margin:0;padding:2.5rem 1.25rem 5rem;
+font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:1.65rem;margin:0 0 .4rem;letter-spacing:-.01em}
+h2{font-size:1.15rem;margin:2.75rem 0 .9rem;padding-bottom:.45rem;
+border-bottom:1px solid var(--line)}
+h3{font-size:.95rem;margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+p.sub{color:var(--mut);margin:0 0 1.75rem;font-size:.95rem}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;
+background:var(--card);padding:.1em .35em;border-radius:4px}
+.paths{background:var(--card);border:1px solid var(--line);border-radius:8px;
+padding:.9rem 1.1rem;font:12.5px/1.9 ui-monospace,SFMono-Regular,Menlo,monospace;
+margin-bottom:1.5rem;overflow-x:auto}
+.paths b{display:inline-block;width:5.5rem;color:var(--mut);font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+gap:.75rem;margin-bottom:.5rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;
+padding:.85rem 1rem}
+.card .n{font-size:1.5rem;font-weight:650;line-height:1.1}
+.card .l{color:var(--mut);font-size:.78rem;text-transform:uppercase;
+letter-spacing:.05em;margin-top:.2rem}
+table.idx{width:100%;border-collapse:collapse;font-size:.9rem}
+table.idx td,table.idx th{border-bottom:1px solid var(--line);padding:.55rem .65rem;
+text-align:left}
+table.idx th{color:var(--mut);font-weight:600;font-size:.76rem;
+text-transform:uppercase;letter-spacing:.05em}
+td.fn{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85rem}
+td.num{text-align:right;font-family:ui-monospace,monospace;font-size:.82rem;width:60px}
+.plus{color:var(--add)}.minus{color:var(--del)}
+.badge{display:inline-block;padding:.12rem .55rem;border-radius:999px;
+font-size:.72rem;font-weight:600;white-space:nowrap}
+.b-same{color:var(--mut);background:var(--card)}
+.b-mod{color:var(--warn);background:var(--warnbg)}
+.b-noise{color:var(--mut);background:var(--card);font-style:italic}
+.b-rn{color:var(--acc);background:var(--card)}
+.b-ours{color:var(--add);background:var(--addbg)}
+section.f{margin:1.5rem 0;border:1px solid var(--line);border-radius:8px;
+overflow:hidden;background:var(--bg)}
+.fh{background:var(--card);padding:.7rem 1rem;border-bottom:1px solid var(--line);
+display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.fh .why{color:var(--mut);font-size:.85rem;flex-basis:100%;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.scroll{overflow-x:auto}
+pre.diff{margin:0;padding:0;font:12.5px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
+min-width:min-content}
+pre.diff span{display:block;padding:0 1rem;white-space:pre}
+pre.diff .h{background:var(--hunk);color:var(--mut)}
+pre.diff .a{background:var(--addbg);color:var(--add)}
+pre.diff .d{background:var(--delbg);color:var(--del)}
+pre.diff .c{color:var(--fg);opacity:.75}
+.note{border-left:3px solid var(--warn);background:var(--warnbg);
+padding:.8rem 1rem;border-radius:0 6px 6px 0;margin:1rem 0;font-size:.9rem}
+.note.ok{border-color:var(--add);background:var(--okbg)}
+.note b{display:block;margin-bottom:.25rem}
+ul{padding-left:1.2rem}li{margin:.4rem 0}
+footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);
+color:var(--mut);font-size:.82rem}
+</style>
+
+<div class="wrap">
+
+<h1>Miryoku vendoring diff</h1>
+<p class="sub">What our vendored copy changed versus pristine upstream Miryoku QMK. Snapshot: 2026-07-26.</p>
+
+<div class="paths">
+<b>upstream</b> tools/miryoku_qmk/users/<wbr>manna-harbour_miryoku &nbsp;<span style="opacity:.7">(branch <code>miryoku</code> @ a014046 — QMK base 2023-05-04, frozen)</span><br>
+<b>ours</b> tools/qmk_userspace/users/<wbr>manna_harbour_miryoku
+</div>
+
+<div class="cards">
+  <div class="card"><div class="n">11</div><div class="l">files vendored</div></div>
+  <div class="card"><div class="n" style="color:var(--warn)">7</div><div class="l">upstream lines changed</div></div>
+  <div class="card"><div class="n plus">+137</div><div class="l">lines in our hook files</div></div>
+  <div class="card"><div class="n" style="color:var(--mut)">154</div><div class="l">rename-noise lines</div></div>
+</div>
+
+<div class="note ok">
+<b>Verdict: the vendored copy is near-pristine.</b>
+Setting aside the <code>manna-harbour</code>&rarr;<code>manna_harbour</code> rename, we changed
+<strong>7 lines of upstream code</strong> across 3 files — all of them forced by ~3 years of QMK
+API drift, none of them layout decisions. Everything we actually own lives in the two files
+Miryoku designates as user hooks (<code>custom_rules.mk</code>, <code>custom_config.h</code>),
+both empty upstream. The layout engine, all 10 layers, and all generated Babel data are
+byte-identical to upstream.
+</div>
+
+<h2>Why this fork exists at all</h2>
+<p style="margin-top:0">QMK deleted all user keymaps, <code>users/</code> and
+<code>layouts/community/*</code> content on 2023-11-23 (tag <code>user-keymaps-still-present</code>,
+commit <code>0379d1f</code>) and stopped accepting keymap PRs. Miryoku is therefore no longer in
+upstream QMK at all. <code>miryoku_qmk</code> is a full QMK fork whose base is QMK master at
+2023-05-04; since then it has received four commits, two of them CI-only, the most recent in
+February 2025. Migration to External QMK Userspace has been announced but not done.</p>
+<p>So there is no upstream to track and no sync to maintain — only a frozen snapshot to vendor
+and carry forward. This document records exactly what carrying it forward has cost.</p>
+
+<h2>File inventory</h2>
+
+<table class="idx">
+<thead><tr><th>File</th><th>Status</th><th>+</th><th>&minus;</th></tr></thead>
+<tbody>
+<tr><td class="fn">miryoku_babel/miryoku_layer_alternatives.h</td><td><span class="badge b-same">identical</span></td><td class="num"></td><td class="num"></td></tr>
+<tr><td class="fn">miryoku_babel/miryoku_layer_selection.h</td><td><span class="badge b-same">identical</span></td><td class="num"></td><td class="num"></td></tr>
+<tr><td class="fn">miryoku_babel/miryoku_layer_list.h</td><td><span class="badge b-same">identical</span></td><td class="num"></td><td class="num"></td></tr>
+<tr><td class="fn">post_rules.mk</td><td><span class="badge b-same">identical</span></td><td class="num"></td><td class="num"></td></tr>
+<tr><td class="fn">manna_harbour_miryoku.h</td><td><span class="badge b-rn">renamed only</span></td><td class="num"></td><td class="num"></td></tr>
+<tr><td class="fn">config.h</td><td><span class="badge b-mod">modified</span></td><td class="num plus">+1</td><td class="num minus">&minus;1</td></tr>
+<tr><td class="fn">rules.mk</td><td><span class="badge b-mod">modified</span></td><td class="num plus">+3</td><td class="num minus">&minus;3</td></tr>
+<tr><td class="fn">manna_harbour_miryoku.c</td><td><span class="badge b-mod">modified</span> <span class="badge b-rn">renamed</span></td><td class="num plus">+3</td><td class="num minus">&minus;3</td></tr>
+<tr><td class="fn">custom_rules.mk</td><td><span class="badge b-ours">ours (hook file)</span></td><td class="num plus">+96</td><td class="num"></td></tr>
+<tr><td class="fn">custom_config.h</td><td><span class="badge b-ours">ours (hook file)</span></td><td class="num plus">+41</td><td class="num"></td></tr>
+<tr><td class="fn">readme.org</td><td><span class="badge b-noise">rename noise only</span></td><td class="num plus">+77</td><td class="num minus">&minus;77</td></tr>
+</tbody>
+</table>
+
+<h2>Changes to upstream code</h2>
+
+<section class="f">
+<div class="fh"><h3>config.h</h3><span class="badge b-mod">QMK compat</span>
+<span class="why">Removed from QMK after the fork's 2023 base; setting it is now a hard build error.</span></div>
+<div class="scroll"><pre class="diff"><span class="h">@@ -12,7 +12,7 @@</span><span class="c"> #define TAPPING_TERM 200</span><span class="c"> </span><span class="c"> // Prevent normal rollover on alphas from accidentally triggering mods.</span><span class="d">-#define IGNORE_MOD_TAP_INTERRUPT</span><span class="a">+// (IGNORE_MOD_TAP_INTERRUPT removed — it is the default in current QMK and now errors if set.)</span><span class="c"> </span><span class="c"> // Enable rapid switch from tap to hold, disables double tap hold auto-repeat.</span><span class="c"> #define QUICK_TAP_TERM 0</span></pre></div>
+</section>
+
+<section class="f">
+<div class="fh"><h3>rules.mk</h3><span class="badge b-mod">external-userspace compat</span>
+<span class="why">Line 11 follows the file rename. Lines 13 and 15 are required: in an external userspace <code>USER_PATH</code> is an absolute path outside the QMK tree, so the hardcoded relative path cannot resolve.</span></div>
+<div class="scroll"><pre class="diff"><span class="h">@@ -8,8 +8,8 @@</span><span class="c"> CAPS_WORD_ENABLE = yes</span><span class="c"> KEY_OVERRIDE_ENABLE = yes</span><span class="c"> </span><span class="d">-INTROSPECTION_KEYMAP_C = manna-harbour_miryoku.c # keymaps</span><span class="a">+INTROSPECTION_KEYMAP_C = manna_harbour_miryoku.c # keymaps</span><span class="c"> </span><span class="d">-include users/manna-harbour_miryoku/custom_rules.mk</span><span class="a">+include $(USER_PATH)/custom_rules.mk</span><span class="c"> </span><span class="d">-include users/manna-harbour_miryoku/post_rules.mk</span><span class="a">+include $(USER_PATH)/post_rules.mk</span></pre></div>
+</section>
+
+<section class="f">
+<div class="fh"><h3>manna_harbour_miryoku.c</h3><span class="badge b-mod">QMK compat</span>
+<span class="why">Hunk 1 follows the header rename. Hunk 2 is the only change to Miryoku's engine code: modern QMK's introspection counts key overrides with <code>ARRAY_SIZE()</code>, which needs a real array, not a pointer to a NULL-terminated compound literal.</span></div>
+<div class="scroll"><pre class="diff"><span class="h">@@ -5,7 +5,7 @@</span><span class="c"> #include QMK_KEYBOARD_H</span><span class="c"> </span><span class="d">-#include "manna-harbour_miryoku.h"</span><span class="a">+#include "manna_harbour_miryoku.h"</span><span class="h">@@ -53,9 +53,9 @@</span><span class="c"> const key_override_t capsword_key_override = ko_make_basic(MOD_MASK_SHIFT, CW_TOGG, KC_CAPS);</span><span class="c"> </span><span class="d">-const key_override_t **key_overrides = (const key_override_t *[]){</span><span class="a">+// Array form (not pointer) so current QMK's ARRAY_SIZE()-based introspection counts it.</span><span class="a">+const key_override_t *key_overrides[] = {</span><span class="c">     &amp;capsword_key_override,</span><span class="d">-    NULL</span><span class="c"> };</span></pre></div>
+</section>
+
+<h2>Our configuration — <code>custom_rules.mk</code></h2>
+
+<p class="sub" style="margin-bottom:1rem">Upstream this file is a bare two-line license header.
+It is Miryoku's designated options hook, included from <code>rules.mk</code>. All layout choices
+live here as <strong>make variables</strong>, which <code>post_rules.mk</code> converts into
+<code>-DMIRYOKU_&lt;OPT&gt;_&lt;VALUE&gt;</code> compiler defines.</p>
+
+<section class="f">
+<div class="fh"><h3>Active settings</h3><span class="badge b-ours">the vanife unified layout</span>
+<span class="why">The only deliberate deviations from stock Miryoku. Recovered from the BM40 — see <code>docs/devices/bm40/recovered-layout.md</code>. Applies to every board built from this userspace, which is what keeps BM40 and Corne in sync.</span></div>
+<div class="scroll"><pre class="diff"><span class="a">+MIRYOKU_ALPHAS ?= QWERTY        # stock default: COLEMAKDH</span><span class="a">+MIRYOKU_NAV    ?= INVERTEDT     # stock default: vi-style row</span></pre></div>
+</section>
+
+<div class="note">
+<b>Why <code>?=</code> and not <code>=</code>, and why not <code>#define</code>.</b>
+<div style="margin-top:.5rem">A keymap's <code>rules.mk</code> is read at
+<code>build_keyboard.mk:146</code>; this file is reached via <code>users/rules.mk</code> at line
+429 — <em>later</em>. A plain <code>=</code> here would clobber any per-keymap value, so the
+userspace defaults must use <code>?=</code>.</div>
+<div style="margin-top:.5rem">These two options were originally <code>#define</code>s in
+<code>custom_config.h</code> and were moved here in 2026-07. Miryoku resolves each option with a
+first-match <code>#elif</code> chain in <strong>alphabetical order</strong>
+(<code>miryoku_babel/miryoku_layer_selection.h:12-33</code>). A <code>#define</code> is
+unconditional, so a per-keymap <code>MIRYOKU_ALPHAS=…</code> would define a <em>second</em>
+symbol rather than replace the first, and whichever appeared earlier in the chain would win with
+no diagnostic. <code>QWERTY</code> sits 9th of 10 — <code>COLEMAKDH</code> would have silently
+overridden it, and <code>QWERTZ</code> would have silently lost to it. Make variables are
+last-write-wins and have no such hazard.</div>
+</div>
+
+<h3 style="font-family:inherit;font-size:1rem;margin:1.75rem 0 .6rem">The three override levels</h3>
+<table class="idx">
+<thead><tr><th>Level</th><th>Where</th><th>Syntax</th></tr></thead>
+<tbody>
+<tr><td>userspace</td><td class="fn">users/manna_harbour_miryoku/custom_rules.mk</td><td class="fn">MIRYOKU_ALPHAS ?= QWERTY</td></tr>
+<tr><td>keymap / layout</td><td class="fn">keyboards/&lt;kb&gt;/keymaps/&lt;km&gt;/rules.mk</td><td class="fn">MIRYOKU_ALPHAS = COLEMAKDH</td></tr>
+<tr><td>build</td><td class="fn">command line</td><td class="fn">make &lt;kb&gt;:&lt;km&gt; MIRYOKU_ALPHAS=DVORAK</td></tr>
+</tbody>
+</table>
+
+<h3 style="font-family:inherit;font-size:1rem;margin:1.75rem 0 .6rem">Complete option catalogue</h3>
+<p class="sub" style="margin-bottom:1rem">These eight are the entire set consumed by
+<code>post_rules.mk</code>; nothing else is read. All are present in
+<code>custom_rules.mk</code> as commented-out lines with their full value lists. Leaving an
+option unset selects Miryoku's stock default.</p>
+
+<table class="idx">
+<thead><tr><th>Option</th><th>Values</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td class="fn">MIRYOKU_ALPHAS</td><td style="font-size:.83rem">AZERTY · BEAKL15 · COLEMAK · COLEMAKDH · COLEMAKDHK · DVORAK · HALMAK · QWERTY · QWERTZ · WORKMAN</td><td class="fn">COLEMAKDH</td></tr>
+<tr><td class="fn">MIRYOKU_EXTRA</td><td style="font-size:.83rem">same 10 values — second alpha layer</td><td class="fn">—</td></tr>
+<tr><td class="fn">MIRYOKU_TAP</td><td style="font-size:.83rem">same 10 values — alphas without home-row mods</td><td class="fn">—</td></tr>
+<tr><td class="fn">MIRYOKU_NAV</td><td style="font-size:.83rem">VI · INVERTEDT &nbsp;<span style="opacity:.7">(drives Nav, Mouse <em>and</em> Media alike)</span></td><td class="fn">vi row</td></tr>
+<tr><td class="fn">MIRYOKU_CLIPBOARD</td><td style="font-size:.83rem">FUN · MAC · WIN</td><td class="fn">portable</td></tr>
+<tr><td class="fn">MIRYOKU_LAYERS</td><td style="font-size:.83rem">FLIP — mirrors layer assignments left&harr;right</td><td class="fn">—</td></tr>
+<tr><td class="fn">MIRYOKU_MAPPING</td><td style="font-size:.83rem">EXTENDED_THUMBS · LITE · NOREVERSEANGLE · PEAK_ERGODOX · ROTATE · SHIFTED_ROWS · SHIFTED_ROWS_EXTENDED_THUMBS · SHIFTED_ROWS_EXTENDED_THUMBS_PINKIE_STAGGER · SPLIT</td><td class="fn">board</td></tr>
+<tr><td class="fn">MIRYOKU_KLUDGE_THUMBCOMBOS</td><td style="font-size:.83rem">yes — forces COMBO_ENABLE</td><td class="fn">—</td></tr>
+</tbody>
+</table>
+
+<div class="note">
+<b><code>MIRYOKU_MAPPING</code> is board-dependent.</b>
+A value only works if that board's <code>LAYOUT_miryoku</code> adapter implements it — see
+<code>keyboards/&lt;kb&gt;/keymaps/&lt;km&gt;/config.h</code>. An unimplemented value falls
+through to the adapter's <code>#else</code> branch silently. Set it per keymap, not userspace-wide.
+</div>
+
+<h2>Our compatibility shims — <code>custom_config.h</code></h2>
+
+<p class="sub" style="margin-bottom:1rem">Upstream this file is a bare license header plus
+<code>#pragma once</code>. What remains here after the layout options moved out is pure
+plumbing: bridges across the ~3-year API gap between the 2023-era vendored Miryoku and our
+newer <code>qmk_firmware</code> pin. All of it becomes deletable if Miryoku is ever re-vendored
+from a modern base.</p>
+
+<section class="f">
+<div class="fh"><h3>Keycode renames</h3><span class="badge b-ours">plumbing, not layout</span></div>
+<div class="scroll"><pre class="diff"><span class="c">// Mouse-keycode rename (QMK 2024): KC_MS_*/KC_BTN*/KC_WH_* → MS_*</span><span class="a">+#define KC_MS_U MS_UP</span><span class="a">+#define KC_MS_D MS_DOWN</span><span class="a">+#define KC_MS_L MS_LEFT</span><span class="a">+#define KC_MS_R MS_RGHT</span><span class="a">+#define KC_BTN1 MS_BTN1</span><span class="a">+#define KC_BTN2 MS_BTN2</span><span class="a">+#define KC_BTN3 MS_BTN3</span><span class="a">+#define KC_WH_U MS_WHLU</span><span class="a">+#define KC_WH_D MS_WHLD</span><span class="a">+#define KC_WH_L MS_WHLL</span><span class="a">+#define KC_WH_R MS_WHLR</span><span class="c">// RGB: old RGBLIGHT keycodes → RGB Matrix (the BM40/Corne use RGB_MATRIX)</span><span class="a">+#define RGB_TOG RM_TOGG</span><span class="a">+#define RGB_MOD RM_NEXT</span><span class="a">+#define RGB_HUI RM_HUEU</span><span class="a">+#define RGB_SAI RM_SATU</span><span class="a">+#define RGB_VAI RM_VALU</span></pre></div>
+</section>
+
+<h2>Adding a named Miryoku variant</h2>
+<p style="margin-top:0">Because the engine lives in <code>users/</code> and options are make
+variables, a second flavour is a keymap directory that borrows the engine — no code duplication:</p>
+<div class="scroll"><pre class="diff" style="border:1px solid var(--line);border-radius:6px;padding:.6rem 0"><span class="c">keyboards/crkbd/rev4_1/standard/keymaps/vanife_colemak/</span><span class="c">  keymap.c   # license header only, zero code (makes the dir discoverable)</span><span class="c">  config.h   # copy the LAYOUT_miryoku adapter from the sibling keymap</span><span class="c">  rules.mk   # USER_NAME = manna_harbour_miryoku</span><span class="c">             # MIRYOKU_ALPHAS = COLEMAKDH</span><span class="c">             # MIRYOKU_NAV    = VI</span><span class="c"></span><span class="c">qmk userspace-add -kb crkbd/rev4_1/standard -km vanife_colemak</span></pre></div>
+<div class="note">
+<b><code>USER_NAME</code> is mandatory.</b>
+It is what wires a differently-named keymap to this userspace. Without it the build looks for
+<code>users/&lt;keymap name&gt;</code>, finds nothing, and silently omits Miryoku entirely —
+<code>-include</code> does not error on a missing file. This is also why the existing
+<code>vanife</code> and <code>vanos</code> keymaps contain no Miryoku code: they are copies of the
+stock board defaults and set no <code>USER_NAME</code>.
+</div>
+
+<h2>Known issue: <code>readme.org</code></h2>
+<p style="margin-top:0">154 changed lines, all produced by the
+<code>manna-harbour_miryoku</code> &rarr; <code>manna_harbour_miryoku</code> substitution, plus one
+trailing-whitespace strip at line 820. No documentation content was edited.</p>
+<div class="note">
+<b>The rename over-applied to URLs.</b>
+About a dozen lines now point at upstream URLs that 404, because upstream really does use the
+hyphen. Lines 8, 18 and 25 among them:
+<div class="scroll" style="margin-top:.6rem"><pre class="diff"><span class="d">-…/miryoku_qmk/tree/miryoku/users/manna-harbour_miryoku   ← real, resolves</span><span class="a">+…/miryoku_qmk/tree/miryoku/users/manna_harbour_miryoku   ← 404</span></pre></div>
+<div style="margin-top:.7rem">Two clean fixes: restore the hyphen inside URLs only, or drop
+<code>readme.org</code> from the vendored copy and link to the fork instead. It is 822 lines —
+46% of the directory — and the pristine version is already pinned two directories away.</div>
+</div>
+
+<h2>Maintenance notes</h2>
+<ul>
+<li><strong>The directory keeps upstream's name deliberately.</strong> Renaming it to
+<code>vanos</code> or similar is mechanically about six edits, but it would break
+<code>diff -r</code> against <code>tools/miryoku_qmk</code> — and that comparison is what makes
+this document, and every future QMK-drift patch, auditable.</li>
+<li><strong>The compat shims are the running cost.</strong> Upstream Miryoku is frozen at a QMK
+2023-05-04 base, so every QMK breaking change from 2023-11 onward lands in
+<code>custom_config.h</code>. Bump the <code>qmk_firmware</code> submodule pin deliberately, not
+on a schedule, and re-check this file each time.</li>
+<li><strong>Keep layout and plumbing separated.</strong> Layout intent belongs in
+<code>custom_rules.mk</code> and should migrate to any future Miryoku base unchanged;
+<code>custom_config.h</code> holds only disposable shims. Do not let options drift back into
+<code>custom_config.h</code> — see the alphabetical-chain hazard above.</li>
+<li><strong>GPL housekeeping.</strong> All files retain their
+<code>Copyright 2019/2022 Manna Harbour</code> headers, satisfying GPL-2.0-or-later.
+<code>custom_rules.mk</code> carries a modification note; adding equivalent one-liners to
+<code>config.h</code>, <code>rules.mk</code> and <code>manna_harbour_miryoku.c</code> would
+satisfy GPLv2 §2(a) more cleanly.</li>
+<li><strong>Not yet compiled.</strong> The <code>custom_rules.mk</code> / <code>custom_config.h</code>
+restructure of 2026-07 has not been verified with a build. Confirm with
+<code>qmk userspace-compile</code> before flashing.</li>
+</ul>
+
+<footer>
+Snapshot 2026-07-26 · upstream <code>miryoku_qmk@a014046</code> · comparison excludes the
+byte-identical <code>miryoku_babel/</code> generated data (689 lines across 3 files).
+Regenerate by diffing <code>tools/miryoku_qmk/users/manna-harbour_miryoku</code> against
+<code>tools/qmk_userspace/users/manna_harbour_miryoku</code>.
+</footer>
+
+</div>
