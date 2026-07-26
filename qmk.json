@@ -6,8 +6,16 @@
             "manna_harbour_miryoku"
         ],
         [
+            "crkbd/rev4_1/standard",
+            "vanos"
+        ],
+        [
             "kprepublic/bm40hsrgb/rev2",
             "manna_harbour_miryoku"
+        ],
+        [
+            "kprepublic/bm40hsrgb/rev2",
+            "vanos"
         ]
     ]
 }
