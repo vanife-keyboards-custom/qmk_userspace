@@ -51,6 +51,11 @@ MIRYOKU_LAYER_LIST
 
 // shift functions
 
+// ⚠ DEAD ON CURRENT QMK: process_caps_word() (quantum.c:384) swallows CW_TOGG before
+// process_key_override() (:387) ever runs, so this never fires — Shift+CW_TOGG just
+// toggles Caps Word. Killed upstream by qmk/qmk_firmware#21434. The `vanos` keymaps
+// restore Caps Lock in users/manna_harbour_miryoku/vanos_caps_lock.h; the stock
+// manna_harbour_miryoku A/B build keeps upstream behaviour (i.e. no Caps Lock at all).
 const key_override_t capsword_key_override = ko_make_basic(MOD_MASK_SHIFT, CW_TOGG, KC_CAPS);
 
 // Array form (not pointer) so current QMK's ARRAY_SIZE()-based introspection counts it.

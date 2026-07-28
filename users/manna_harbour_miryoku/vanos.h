@@ -15,16 +15,30 @@
 
 #pragma once
 
-// ── Home-row-mod timing tune (docs/LAYOUT-RESEARCH.md, unified-layout/SPEC.md §3) ──
+// ── Home-row-mod timing tune (docs/LAYOUT-RESEARCH.md, docs/UNIFIED-LAYOUT.md §3) ──
 // miryoku:default ships TAPPING_TERM 200 with no decision-helper flags.
+//
+// The tune is the three flags below, NOT the term. QMK docs and Getreuer pair the
+// recipe with 250, but that number is calibrated for someone adopting HRMs cold;
+// this user has months of trained feel at 200, and the term is nearly inert during
+// typing anyway — same-hand rolls are decided by CHORDAL_HOLD, nested cross-hand
+// rolls by PERMISSIVE_HOLD, streak keys by FLOW_TAP, all regardless of its value.
+// It only governs the hold-alone arm time and the lingering-finger case, which is
+// exactly the trained feel worth preserving. So: keep 200, change one thing at a time.
+// (250 also silently slowed Auto Shift, since stock's config.h:22 defines
+// AUTO_SHIFT_TIMEOUT as TAPPING_TERM and AUTO_SHIFT_ENABLE = yes.)
 
 #undef TAPPING_TERM
-#define TAPPING_TERM 250          // was 200
+#define TAPPING_TERM 200          // = stock Miryoku, deliberately unchanged
 
 #define PERMISSIVE_HOLD           // hold resolves on a nested tap+release (faster, roll-safe)
 #define FLOW_TAP_TERM 150         // suppress HRM hold during fast typing bursts
+#define CHORDAL_HOLD              // opposite-hands rule — same-hand rolls always tap
 
-// CHORDAL_HOLD (opposite-hands rule — the biggest misfire reduction) is the next
-// addition. On the split Corne it works from handedness automatically; on the
-// unibody BM40 it needs a per-board `chordal_hold_layout` map, so it is added in a
-// follow-up step (also watch BM40 flash: currently 94% full).
+// ⚠ CHORDAL_HOLD is not optional here: PERMISSIVE_HOLD alone turns every same-hand
+// roll into a mod (`just` → `Ust`, since Miryoku puts LSFT_T on the index finger),
+// which is strictly worse than stock Miryoku's 200 + no flags. The three defines
+// above are one recipe (Getreuer / urob "timeless" HRMs) — do not ship a subset.
+//
+// Handedness comes from `vanos_chordal_hold.h`, included by each board's
+// keymaps/vanos/keymap.c, so both boards get the identical map (thumbs exempt).

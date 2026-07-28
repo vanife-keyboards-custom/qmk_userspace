@@ -40,6 +40,38 @@ MIRYOKU_NAV    ?= INVERTEDT     # stock default: vi-style row
 
 
 # ═════════════════════════════════════════════════════════════════════════════
+#  QMK FEATURE TOGGLES — vanos only
+#
+#  These are plain QMK features, not Miryoku options, so post_rules.mk never sees
+#  them and there is no `?=` for a keymap to beat. The vendored rules.mk:4-10 sets
+#  them with `=` and is read at build_keyboard.mk:429 — AFTER a keymap rules.mk
+#  (:146). So `AUTO_SHIFT_ENABLE = no` in keymaps/vanos/rules.mk would be read and
+#  then silently overwritten: the mirror image of the `?=` hazard documented above.
+#  This file is included from rules.mk:14, after those assignments, so it wins.
+#  (RGB_MATRIX_ENABLE in keymaps/vanos/rules.mk is not affected by any of this — it
+#  is a keyboard.json default, not a userspace assignment, so a keymap can override
+#  it. Do not generalise from that case to these.)
+#
+#  Guarded on $(KEYMAP) so the stock `manna_harbour_miryoku` A/B reference build
+#  keeps Miryoku's feature set exactly as shipped.
+# ═════════════════════════════════════════════════════════════════════════════
+
+ifeq ($(KEYMAP),vanos)
+
+  # Auto Shift — OFF. Long-pressing a key to get its shifted form; unused here.
+  # Miryoku enables it, but nothing in the layout depends on it: no keycode, no
+  # reference in manna_harbour_miryoku.c or miryoku_babel/, no mention in
+  # readme.org — just rules.mk:6 plus the three settings at config.h:21-23. Off
+  # because (a) unused, (b) config.h:22 defines AUTO_SHIFT_TIMEOUT as TAPPING_TERM,
+  # so every future term tweak silently moved a second behaviour too, and (c) with
+  # NO_AUTO_SHIFT_ALPHA it still fires on non-alphas — dwelling on `,` yields `<`,
+  # a Num-layer digit yields its symbol. Saves 948 B (devices/bm40/size-matrix.md).
+  AUTO_SHIFT_ENABLE = no
+
+endif
+
+
+# ═════════════════════════════════════════════════════════════════════════════
 #  FULL OPTION CATALOGUE — uncomment to change. Values are exhaustive.
 #  These eight are the complete set consumed by post_rules.mk; nothing else
 #  is read. Leaving an option unset selects Miryoku's stock default.
