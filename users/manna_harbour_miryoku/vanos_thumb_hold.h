@@ -16,25 +16,8 @@
 
 #pragma once
 
-#include "quantum.h"               // keyrecord_t, keycode macros, is_flow_tap_key()
-#include "manna_harbour_miryoku.h" // enum miryoku_layers (U_BUTTON)
-
-// ── Which keys are "thumb keys" ──────────────────────────────────────────────
-//
-// Every Miryoku thumb key is a layer-tap: LT(U_MEDIA,Esc) LT(U_NAV,Spc)
-// LT(U_MOUSE,Tab) │ LT(U_SYM,Ent) LT(U_NUM,Bsp) LT(U_FUN,Del).
-//
-// The ONLY other layer-taps in the keymap are LT(U_BUTTON, Z) and
-// LT(U_BUTTON, /) — those sit under the *pinkies*, where thumb rules must not
-// apply. Excluding U_BUTTON is therefore exactly equivalent to "is a thumb key",
-// without hardcoding a single matrix position.
-//
-// ⚠ If the Button layer is ever moved or replaced (e.g. relocating the Mouse
-// layer onto the pinky holds to free a thumb for Shift), update this predicate
-// in the same commit — it is the one place that encodes "pinky, not thumb".
-static inline bool vanos_is_thumb_key(uint16_t keycode) {
-    return IS_QK_LAYER_TAP(keycode) && QK_LAYER_TAP_GET_LAYER(keycode) != U_BUTTON;
-}
+#include "quantum.h"    // keyrecord_t, keycode macros, is_flow_tap_key()
+#include "vanos_keys.h" // vanos_is_thumb_key(), vanos_is_shift_mod_tap()
 
 // ── Flow Tap exemptions: thumbs, and Shift ───────────────────────────────────
 //
@@ -89,13 +72,8 @@ uint16_t get_flow_tap_term(uint16_t keycode, keyrecord_t *record, uint16_t prev_
         return 0; // thumbs never participate in Flow Tap
     }
     // Shift mod-taps (LSFT_T on both index fingers) never participate either.
-    //
-    // ⚠ MOD_LSFT here is the 5-bit encoding used *inside* a mod-tap keycode
-    // (modifiers.h:15-24: MOD_LSFT 0x02, MOD_RSFT 0x12). Do NOT reach for
-    // MOD_MASK_SHIFT — that is the 8-bit packed form (0x22) and would never
-    // match, silently leaving Flow Tap enabled on Shift. Masking with MOD_LSFT
-    // catches left and right Shift, and any combined mod containing Shift.
-    if (IS_QK_MOD_TAP(keycode) && (QK_MOD_TAP_GET_MODS(keycode) & MOD_LSFT)) {
+    // (Predicate and its MOD_LSFT-vs-MOD_MASK_SHIFT trap: vanos_keys.h.)
+    if (vanos_is_shift_mod_tap(keycode)) {
         return 0;
     }
     // QMK's default rule, verbatim (quantum/action_tapping.c:1099).

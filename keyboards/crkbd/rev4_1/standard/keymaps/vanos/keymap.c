@@ -13,7 +13,10 @@
 
 #include QMK_KEYBOARD_H
 #include "vanos_chordal_hold.h"
-#include "vanos_thumb_hold.h"   // thumb tap-hold behaviour (Flow Tap exemption)
+#include "vanos_thumb_hold.h"      // thumb tap-hold behaviour (Flow Tap exemption)
+#include "vanos_permissive_hold.h" // per-key Permissive Hold (bug 001: word-initial `la`)
+#include "vanos_split_watchdog.h"  // slave half reboots itself if the master goes quiet
+                                   // (split boards only — inert without SPLIT_KEYBOARD)
 // DISABLED ON OS LEVEL — Caps Lock is remapped away by the desktop, so the firmware
 // fix has no observable effect on this machine. Hyprland ships `kb_options =
 // compose:caps` (~/.local/share/omarchy/default/hypr/input.conf:6), which XKB turns

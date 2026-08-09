@@ -31,14 +31,39 @@
 #undef TAPPING_TERM
 #define TAPPING_TERM 200          // = stock Miryoku, deliberately unchanged
 
-#define PERMISSIVE_HOLD           // hold resolves on a nested tap+release (faster, roll-safe)
+#define PERMISSIVE_HOLD_PER_KEY   // hold resolves on a nested tap+release — thumbs/Shift only
 #define FLOW_TAP_TERM 150         // suppress HRM hold during fast typing bursts
 #define CHORDAL_HOLD              // opposite-hands rule — same-hand rolls always tap
 
-// ⚠ CHORDAL_HOLD is not optional here: PERMISSIVE_HOLD alone turns every same-hand
+// ⚠ CHORDAL_HOLD is not optional here: permissive hold alone turns every same-hand
 // roll into a mod (`just` → `Ust`, since Miryoku puts LSFT_T on the index finger),
 // which is strictly worse than stock Miryoku's 200 + no flags. The three defines
 // above are one recipe (Getreuer / urob "timeless" HRMs) — do not ship a subset.
 //
+// PERMISSIVE_HOLD_PER_KEY, not bare PERMISSIVE_HOLD, since 2026-07-30 — bug 001
+// (docs/bugs/001-word-initial-hrm-alt-misfire.md): the bare flag made word-initial
+// `la` misfire as Alt and swallowed both letters (`lazygit` → `zygit`). Neither
+// CHORDAL_HOLD nor FLOW_TAP can catch that case; see the header for the trace.
+// The policy — fast path for thumbs and Shift only — lives in
+// `vanos_permissive_hold.h`, included by each board's keymaps/vanos/keymap.c.
+// ⚠ PER_KEY *replaces* the bare flag (action_tapping.c:233-239); dropping that
+// header without removing this define turns Permissive Hold off everywhere.
+//
 // Handedness comes from `vanos_chordal_hold.h`, included by each board's
 // keymaps/vanos/keymap.c, so both boards get the identical map (thumbs exempt).
+
+// ── Mouse cursor precision tune (docs/POINTING-DEVICE-NAVIGATION.md) ─────────
+// Step size of the very first cursor tick (stock Miryoku/QMK default: 8) —
+// shrunk for more precise landings. Try lower (2, then 1) if 4 still overshoots
+// small targets; each step down roughly halves both the first jump and the
+// ramped-up cruise speed. Lives here, not in the shared config.h, because the
+// stock `manna_harbour_miryoku` reference keymap shares that file and should
+// stay byte-identical to upstream Miryoku's own mousekey tuning.
+#undef MOUSEKEY_MOVE_DELTA
+#define MOUSEKEY_MOVE_DELTA 4
+
+// ── Mouse layer acceleration override (T/G/B → MS_ACL2/MS_ACL1/MS_ACL0) ──────
+// Must define MIRYOKU_LAYER_MOUSE before miryoku_layer_selection.h runs its own
+// `#if !defined(MIRYOKU_LAYER_MOUSE)` selection — see vanos_mouse.h for why this
+// lives in its own file instead of inline here.
+#include "vanos_mouse.h"
