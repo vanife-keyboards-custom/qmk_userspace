@@ -16,6 +16,7 @@
 #include "vanos_thumb_hold.h"      // thumb tap-hold behaviour (Flow Tap exemption)
 #include "vanos_permissive_hold.h" // per-key Permissive Hold (bug 001: word-initial `la`)
 #include "vanos_split_watchdog.h"  // slave half reboots itself if the master goes quiet
+#include "vanos_flat.h"            // Mode B flat layer: persistent Flat† toggle, exit chord, LED (docs/MODE-B-KANATA.md)
                                    // (split boards only — inert without SPLIT_KEYBOARD)
 // DISABLED ON OS LEVEL — Caps Lock is remapped away by the desktop, so the firmware
 // fix has no observable effect on this machine. Hyprland ships `kb_options =
@@ -167,3 +168,10 @@ void matrix_scan_user(void) {
     uprintf("\n");
 }
 #endif
+
+// ── process_record_user: Mode B exit chord (vanos_flat.h) ────────────────────
+// Only this file may define process_record_user. If vanos_caps_lock.h is ever
+// re-enabled (it defines its own), fold its body in here instead.
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    return vanos_flat_process_record(keycode, record);
+}
