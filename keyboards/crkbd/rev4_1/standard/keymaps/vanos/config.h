@@ -17,7 +17,7 @@
 // KILL SWITCH: comment out the next line (and reflash both halves) to get stock
 // QMK behaviour back. SPLIT_TRANSACTION_IDS_USER can stay either way — an unused
 // transaction id costs nothing.
-#define VANOS_SPLIT_WATCHDOG
+//#define VANOS_SPLIT_WATCHDOG // DIAGNOSTIC 2026-09-23: off for the A/B test, see keymap.c
 #define SPLIT_TRANSACTION_IDS_USER VANOS_RPC_WATCHDOG
 
 // Optional tuning (defaults in vanos_split_watchdog.h): ping every 100 ms, reboot
@@ -32,3 +32,11 @@
 // hung loop cannot reboot itself. Read the ⚠ in vanos_split_watchdog.h first.
 //#define VANOS_SPLIT_WATCHDOG_HW
 //#define VANOS_SPLIT_WATCHDOG_HW_TIMEOUT    3000
+
+// ── DIAGNOSTIC 2026-09-24: slow the split serial link ─────────────────────────
+// Probe run at the stock 230400 baud (SELECT_SOFT_SERIAL_SPEED 1) showed ~15 % of
+// RPC pings failing on a link with zero drops and zero slave resets — a noisy
+// data wire, not power. 3 = 57600 baud, four times the noise margin. MUST match on
+// both halves. If the ping failure rate collapses, keep a slower speed (try 2 =
+// 115200 next) as the fix; if it does not, the errors are not timing-related.
+#define SELECT_SOFT_SERIAL_SPEED 3

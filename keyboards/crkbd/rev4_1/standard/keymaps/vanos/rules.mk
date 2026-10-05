@@ -20,3 +20,12 @@ USER_NAME = manna_harbour_miryoku
 # and no reachable reset button, lighting the LEDs is currently the only way to
 # tell "slave MCU alive, link dead" from "slave MCU hung".
 #RGB_MATRIX_ENABLE = no
+
+# ── DIAGNOSTIC: QMK console (hid_listen) — 2026-09-23, "slave half dead" ──────
+# Adds a raw-HID console interface so `qmk console` shows the master's dprintf
+# output: split_common prints "Target disconnected, throttling connection attempts"
+# / "Target connected" (quantum/split_common/split_util.c) and "Failed to execute
+# <transaction>" (transactions.c). keymap.c turns debug_enable/debug_matrix on at
+# boot when this is set. Only the USB-connected half can be heard — the slave has
+# no USB. Costs flash + one extra USB interface; set back to `no` once done.
+CONSOLE_ENABLE = yes
