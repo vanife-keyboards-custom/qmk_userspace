@@ -12,6 +12,10 @@ jobs:
     with:
       qmk_repo: qmk/qmk_firmware
       qmk_ref: master
+      # The Cheapino is not in upstream QMK: link our vendored board definition into
+      # the checked-out tree before `qmk userspace-compile` (same as kboards'
+      # scripts/link-cheapino.sh does locally). See vendor/keyboards/cheapino/VENDORING-DIFF.html.
+      preparation_command: ln -s ../../vendor/keyboards/cheapino qmk_firmware/keyboards/cheapino
 
   publish:
     name: 'QMK Userspace Publish'
