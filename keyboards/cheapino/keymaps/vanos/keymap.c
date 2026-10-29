@@ -15,7 +15,7 @@
 #include "vanos_chordal_hold.h"
 #include "vanos_thumb_hold.h"      // thumb tap-hold behaviour (Flow Tap exemption)
 #include "vanos_permissive_hold.h" // per-key Permissive Hold (bug 001: word-initial `la`)
-#include "../manna_harbour_miryoku/cheapino_encoder.h" // encoder direction fix (our units turn reversed)
+#include "vanos_encoder.h"         // layer-aware knob + push, status LED, pomodoro (owns process_record_user)
 // DISABLED ON OS LEVEL — Caps Lock is remapped away by the desktop, so the firmware
 // fix has no observable effect on this machine. Hyprland ships `kb_options =
 // compose:caps` (~/.local/share/omarchy/default/hypr/input.conf:6), which XKB turns
