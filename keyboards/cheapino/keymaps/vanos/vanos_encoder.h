@@ -24,7 +24,8 @@
 //
 //   Push, in priority order:
 //     1. pomodoro alarm flashing  → acknowledge (stops the flashing)
-//     2. long press (≥ 600 ms)    → start / cancel the pomodoro, on any layer
+//     2. long press (≥ 600 ms)    → start / cancel the pomodoro, on any layer;
+//                                   fires at 600 ms while still held
 //     3. a layer is LOCKED        → unlock (default layer back to BASE)
 //     4. otherwise                → the layer's tap action from the table
 //
@@ -90,7 +91,10 @@
 #define VANOS_KEY_BRIGHT_DOWN KC_F14   // see the host table in the header
 #define VANOS_KEY_BRIGHT_UP KC_F15
 #define VANOS_KEY_BRIGHT_MID KC_F16
-#define VANOS_LED_VAL 120             // indicator brightness, 0–255
+// Indicators use YOUR brightness: the value of the saved colour (set with the
+// MEDIA layer's RGB_VAI; Shift+RGB_VAI lowers it), sampled whenever the LED shows
+// that colour. Floor so a very dim setting still shows the indicators.
+#define VANOS_LED_MIN_VAL 16
 #define VANOS_LED_BOOT_QUIET_MS 3000  // leave the board's boot hue sweep alone
 
 // Keyboard layouts as configured in ~/.config/hypr/input.lua
@@ -106,6 +110,9 @@ static const uint16_t vanos_kb_layouts[] = {
 // ── State ────────────────────────────────────────────────────────────────────
 static uint8_t  vanos_kb_layout     = 0; // firmware's idea of the active layout
 static uint16_t vanos_push_timer    = 0;
+static bool     vanos_push_down     = false;
+static bool     vanos_push_long     = false; // long press already fired for this press
+static uint8_t  vanos_user_val      = 64;    // see VANOS_LED_MIN_VAL
 static uint8_t  pomodoro_minutes    = VANOS_POMODORO_DEFAULT_MIN;
 static bool     pomodoro_running    = false;
 static uint32_t pomodoro_started    = 0;
@@ -243,17 +250,28 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     if (record->event.pressed) {
         vanos_push_timer = timer_read();
+        vanos_push_down  = true;
+        vanos_push_long  = false;
         return false;
     }
-    // Decided on release, so a long press never also fires the tap action.
+    // The long press fires while still held (vanos_push_task), so the LED answers
+    // under your finger; its release then does nothing. A short press acts on
+    // release.
+    vanos_push_down = false;
+    if (vanos_push_long) return false;
     if (pomodoro_alarm) {
         pomodoro_alarm = false;
-    } else if (timer_elapsed(vanos_push_timer) >= VANOS_ENC_LONG_PRESS_MS) {
-        pomodoro_toggle();
     } else {
         vanos_push_tap();
     }
     return false;
+}
+
+static void vanos_push_task(void) {
+    if (vanos_push_down && !vanos_push_long && !pomodoro_alarm && timer_elapsed(vanos_push_timer) >= VANOS_ENC_LONG_PRESS_MS) {
+        vanos_push_long = true;
+        pomodoro_toggle();
+    }
 }
 
 // ── Status LED ───────────────────────────────────────────────────────────────
@@ -283,24 +301,24 @@ static uint32_t vanos_led_wanted(void) {
 
     if (pomodoro_alarm) {
         on = (timer_elapsed32(pomodoro_alarm_from) / 200) % 2 == 0;
-        return vanos_led_pack(HUE_RED, 255, on ? 255 : 0);
+        return vanos_led_pack(HUE_RED, 255, on ? vanos_user_val : 0);
     }
     if (led_flash_len && timer_elapsed32(led_flash_start) < led_flash_len) {
-        if (led_flash_count == 0) return vanos_led_pack(led_flash_hue, 255, VANOS_LED_VAL);
+        if (led_flash_count == 0) return vanos_led_pack(led_flash_hue, 255, vanos_user_val);
         on = (timer_elapsed32(led_flash_start) / VANOS_LED_FLASH_STEP_MS) % 2 == 0;
-        return vanos_led_pack(led_flash_hue, 255, on ? VANOS_LED_VAL : 0);
+        return vanos_led_pack(led_flash_hue, 255, on ? vanos_user_val : 0);
     }
     // MEDIA carries the RGB keys: show the live colour there, so their effect
     // is visible while the layer is held (no purple indicator).
     if (layer_state && get_highest_layer(layer_state) != U_MEDIA) {
-        return vanos_led_pack(vanos_layer_hue(get_highest_layer(layer_state)), 255, VANOS_LED_VAL);
+        return vanos_led_pack(vanos_layer_hue(get_highest_layer(layer_state)), 255, vanos_user_val);
     }
     if (vanos_layer_locked()) {
         on = (now / 600) % 2 == 0;
-        return vanos_led_pack(vanos_layer_hue(get_highest_layer(default_layer_state)), 255, on ? VANOS_LED_VAL : 0);
+        return vanos_led_pack(vanos_layer_hue(get_highest_layer(default_layer_state)), 255, on ? vanos_user_val : 0);
     }
     if (pomodoro_running && timer_elapsed32(pomodoro_started) % 5000 < 120) {
-        return vanos_led_pack(HUE_RED, 255, VANOS_LED_VAL);
+        return vanos_led_pack(HUE_RED, 255, vanos_user_val);
     }
     return LED_USER;
 }
@@ -308,6 +326,14 @@ static uint32_t vanos_led_wanted(void) {
 static void vanos_led_task(void) {
     static uint32_t shown = LED_USER;
     if (timer_read32() < VANOS_LED_BOOT_QUIET_MS) return;
+
+    // While the LED shows your colour, rgblight's value IS your setting (once
+    // an indicator is drawn, it holds ours instead) — so sample it only here.
+    // Changes made on MEDIA (live colour) are picked up the same way.
+    if (shown == LED_USER) {
+        uint8_t v      = rgblight_get_val();
+        vanos_user_val = v < VANOS_LED_MIN_VAL ? VANOS_LED_MIN_VAL : v;
+    }
 
     uint32_t want = vanos_led_wanted();
     if (want == shown) return;
@@ -326,6 +352,7 @@ static void vanos_led_task(void) {
 }
 
 void housekeeping_task_user(void) {
+    vanos_push_task();
     pomodoro_task();
     vanos_led_task();
 }
