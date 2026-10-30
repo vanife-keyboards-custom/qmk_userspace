@@ -52,10 +52,11 @@
 // ── Status LED (the single WS2812 on the RP2040-Zero, left half) ─────────────
 //
 //   pomodoro alarm     red, fast flash, until acknowledged (gives up after 15 min)
-//   layer held         solid layer colour
+//   layer held         solid layer colour: NAV cyan, MOUSE yellow, NUM blue,
+//                      SYM green, FUN magenta, BUTTON white (MEDIA: live colour)
 //   layer locked       layer colour, slow blink
 //   pomodoro running   your normal colour + a short red blip every 5 s
-//   FUN rotate         flash of the new length: green (5 min) → red (60 min)
+//   FUN rotate         the new length as white blinks, N × 5 min (25 min = 5)
 //   otherwise          your normal colour (whatever RGB_* set, read from EEPROM)
 //
 // Indicator colours are written with the *_noeeprom calls, so they never wear
@@ -122,28 +123,42 @@ static uint32_t pomodoro_alarm_from = 0;
 // everything except the alarm. count blinks; count 0 = solid for solid_ms.
 static uint32_t led_flash_start = 0;
 static uint16_t led_flash_len   = 0;
-static uint8_t  led_flash_hue   = 0;
+static uint8_t  led_flash_col   = 0;
 static uint8_t  led_flash_count = 0;
 #define VANOS_LED_FLASH_STEP_MS 150
 
-static void vanos_led_flash(uint8_t hue, uint8_t count, uint16_t solid_ms) {
-    led_flash_hue   = hue;
+static void vanos_led_flash(uint8_t col, uint8_t count, uint16_t solid_ms) {
+    led_flash_col   = col;
     led_flash_count = count;
     led_flash_start = timer_read32();
     led_flash_len   = count ? 2 * count * VANOS_LED_FLASH_STEP_MS : solid_ms;
 }
 
-// Hues on QMK's 0–255 wheel (color.h only has full HSV triplets).
-#define HUE_RED 0
-#define HUE_ORANGE 21
-#define HUE_YELLOW 43
-#define HUE_GREEN 85
-#define HUE_TEAL 106
-#define HUE_CYAN 128
-#define HUE_BLUE 170
-#define HUE_PURPLE 191
-#define HUE_MAGENTA 213
-#define HUE_PINK 234
+// Indicator colours: every channel fully on or fully off. These 7 are the only
+// colours a single RGB LED shows unambiguously, even dimmed; hue-wheel shades
+// in between (orange, teal, purple, pink) blurred into their neighbours.
+#define COL_R 4
+#define COL_G 2
+#define COL_B 1
+#define COL_RED (COL_R)
+#define COL_GREEN (COL_G)
+#define COL_BLUE (COL_B)
+#define COL_YELLOW (COL_R | COL_G)
+#define COL_CYAN (COL_G | COL_B)
+#define COL_MAGENTA (COL_R | COL_B)
+#define COL_WHITE (COL_R | COL_G | COL_B)
+
+// A colour at the user's brightness, packed 0xRRGGBB (0 = off). WS2812 green is
+// far brighter than red and blue at the same duty, which made yellow and cyan
+// read as green: scale green and blue by FastLED's TypicalSMD5050 correction
+// (0xFFB0F0, i.e. G×176/255, B×240/255).
+static uint32_t vanos_led_rgb(uint8_t col, bool on) {
+    if (!on) return 0;
+    uint8_t r = (col & COL_R) ? vanos_user_val : 0;
+    uint8_t g = (col & COL_G) ? (uint16_t)vanos_user_val * 176 / 255 : 0;
+    uint8_t b = (col & COL_B) ? (uint16_t)vanos_user_val * 240 / 255 : 0;
+    return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+}
 
 // The layer the knob acts on: the highest momentary layer, else the default
 // layer (which is where a Miryoku double-tap lock puts it).
@@ -156,19 +171,13 @@ static bool vanos_layer_locked(void) {
 }
 
 // ── Pomodoro ─────────────────────────────────────────────────────────────────
-static uint8_t pomodoro_hue(void) {
-    // 5 min → green (85), 60 min → red (0)
-    return 85 - (uint16_t)85 * (pomodoro_minutes - VANOS_POMODORO_STEP_MIN) /
-                    (VANOS_POMODORO_MAX_MIN - VANOS_POMODORO_STEP_MIN);
-}
-
 static void pomodoro_toggle(void) {
     pomodoro_running = !pomodoro_running;
     if (pomodoro_running) {
         pomodoro_started = timer_read32();
-        vanos_led_flash(HUE_GREEN, 3, 0);
+        vanos_led_flash(COL_GREEN, 3, 0);
     } else {
-        vanos_led_flash(HUE_RED, 1, 0);
+        vanos_led_flash(COL_RED, 1, 0);
     }
 }
 
@@ -203,6 +212,7 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
         case U_MEDIA: // brightness of every screen, via the host bind
             tap_code(clockwise ? VANOS_KEY_BRIGHT_UP : VANOS_KEY_BRIGHT_DOWN);
             break;
+#ifdef VANOS_ENC_NUM_SYM_DIAL // off: NUM and SYM keep the default knob (volume)
         case U_NUM:
             tap_code(clockwise ? KC_UP : KC_DOWN);
             break;
@@ -210,10 +220,13 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
                     // KC_UNDO/KC_AGIN, which Linux apps mostly ignore
             tap_code16(clockwise ? C(S(KC_Z)) : C(KC_Z));
             break;
+#endif
         case U_FUN: // pomodoro length; takes effect at the next start
             if (clockwise && pomodoro_minutes < VANOS_POMODORO_MAX_MIN) pomodoro_minutes += VANOS_POMODORO_STEP_MIN;
             if (!clockwise && pomodoro_minutes > VANOS_POMODORO_STEP_MIN) pomodoro_minutes -= VANOS_POMODORO_STEP_MIN;
-            vanos_led_flash(pomodoro_hue(), 0, 800);
+            // Read it back as a count: N white blinks = N × 5 min (25 min = 5).
+            // Each detent restarts the count, so it plays out once you stop.
+            vanos_led_flash(COL_WHITE, pomodoro_minutes / VANOS_POMODORO_STEP_MIN, 0);
             break;
         default: // BASE, TAP, EXTRA, BUTTON
             tap_code_delay(clockwise ? KC_VOLU : KC_VOLD, 10);
@@ -275,25 +288,20 @@ static void vanos_push_task(void) {
 }
 
 // ── Status LED ───────────────────────────────────────────────────────────────
-static uint8_t vanos_layer_hue(uint8_t layer) {
+// Red is kept for the pomodoro, green/red blinks for start/cancel. Locks of the
+// rarely used TAP/EXTRA bases share white with BUTTON; they only ever blink.
+static uint8_t vanos_layer_col(uint8_t layer) {
     switch (layer) {
-        case U_NAV:    return HUE_CYAN;
-        case U_MOUSE:  return HUE_YELLOW;
-        case U_MEDIA:  return HUE_PURPLE;
-        case U_NUM:    return HUE_BLUE;
-        case U_SYM:    return HUE_GREEN;
-        case U_FUN:    return HUE_ORANGE;
-        case U_BUTTON: return HUE_TEAL;
-        case U_TAP:    return HUE_MAGENTA;
-        default:       return HUE_PINK; // EXTRA
+        case U_NAV:   return COL_CYAN;
+        case U_MOUSE: return COL_YELLOW;
+        case U_NUM:   return COL_BLUE;
+        case U_SYM:   return COL_GREEN;
+        case U_FUN:   return COL_MAGENTA;
+        default:      return COL_WHITE; // BUTTON, TAP, EXTRA (MEDIA: live colour)
     }
 }
 
 #define LED_USER 0xFFFFFFFF // sentinel: show the saved (EEPROM) colour
-
-static uint32_t vanos_led_pack(uint8_t h, uint8_t s, uint8_t v) {
-    return ((uint32_t)h << 16) | ((uint32_t)s << 8) | v;
-}
 
 static uint32_t vanos_led_wanted(void) {
     uint32_t now = timer_read32();
@@ -301,24 +309,22 @@ static uint32_t vanos_led_wanted(void) {
 
     if (pomodoro_alarm) {
         on = (timer_elapsed32(pomodoro_alarm_from) / 200) % 2 == 0;
-        return vanos_led_pack(HUE_RED, 255, on ? vanos_user_val : 0);
+        return vanos_led_rgb(COL_RED, on);
     }
     if (led_flash_len && timer_elapsed32(led_flash_start) < led_flash_len) {
-        if (led_flash_count == 0) return vanos_led_pack(led_flash_hue, 255, vanos_user_val);
-        on = (timer_elapsed32(led_flash_start) / VANOS_LED_FLASH_STEP_MS) % 2 == 0;
-        return vanos_led_pack(led_flash_hue, 255, on ? vanos_user_val : 0);
+        on = led_flash_count == 0 || (timer_elapsed32(led_flash_start) / VANOS_LED_FLASH_STEP_MS) % 2 == 0;
+        return vanos_led_rgb(led_flash_col, on);
     }
     // MEDIA carries the RGB keys: show the live colour there, so their effect
-    // is visible while the layer is held (no purple indicator).
+    // is visible while the layer is held.
     if (layer_state && get_highest_layer(layer_state) != U_MEDIA) {
-        return vanos_led_pack(vanos_layer_hue(get_highest_layer(layer_state)), 255, vanos_user_val);
+        return vanos_led_rgb(vanos_layer_col(get_highest_layer(layer_state)), true);
     }
     if (vanos_layer_locked()) {
-        on = (now / 600) % 2 == 0;
-        return vanos_led_pack(vanos_layer_hue(get_highest_layer(default_layer_state)), 255, on ? vanos_user_val : 0);
+        return vanos_led_rgb(vanos_layer_col(get_highest_layer(default_layer_state)), (now / 600) % 2 == 0);
     }
     if (pomodoro_running && timer_elapsed32(pomodoro_started) % 5000 < 120) {
-        return vanos_led_pack(HUE_RED, 255, vanos_user_val);
+        return vanos_led_rgb(COL_RED, true);
     }
     return LED_USER;
 }
@@ -327,13 +333,11 @@ static void vanos_led_task(void) {
     static uint32_t shown = LED_USER;
     if (timer_read32() < VANOS_LED_BOOT_QUIET_MS) return;
 
-    // While the LED shows your colour, rgblight's value IS your setting (once
-    // an indicator is drawn, it holds ours instead) — so sample it only here.
-    // Changes made on MEDIA (live colour) are picked up the same way.
-    if (shown == LED_USER) {
-        uint8_t v      = rgblight_get_val();
-        vanos_user_val = v < VANOS_LED_MIN_VAL ? VANOS_LED_MIN_VAL : v;
-    }
+    // Indicators are drawn with rgblight_setrgb, which leaves rgblight's
+    // hue/sat/val alone, so its value is always the user's setting (including
+    // live changes made on MEDIA).
+    uint8_t v      = rgblight_get_val();
+    vanos_user_val = v < VANOS_LED_MIN_VAL ? VANOS_LED_MIN_VAL : v;
 
     uint32_t want = vanos_led_wanted();
     if (want == shown) return;
@@ -343,10 +347,10 @@ static void vanos_led_task(void) {
         if (!rgblight_is_enabled()) rgblight_disable_noeeprom();
     } else {
         if (shown == LED_USER) {
-            rgblight_enable_noeeprom();
+            rgblight_enable_noeeprom(); // setrgb is a no-op while disabled
             rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
         }
-        rgblight_sethsv_noeeprom(want >> 16, (want >> 8) & 0xFF, want & 0xFF);
+        rgblight_setrgb(want >> 16, (want >> 8) & 0xFF, want & 0xFF);
     }
     shown = want;
 }
