@@ -10,9 +10,15 @@
 #include QMK_KEYBOARD_H
 // The encoder push sits in LAYOUT_miryoku's expansion; in the handedness map it must
 // be a hand character, not a keycode (see ../manna_harbour_miryoku/config.h).
+// ⚠ Restore it right after: QMK compiles the Miryoku keymaps[] in this same
+// translation unit, AFTER this file (keymap_introspection.c includes keymap.c,
+// then manna_harbour_miryoku.c). A leaked '*' (0x2A) made the push KC_BSPC on
+// every layer — verified in the 2026-10-29 builds' keymaps[] dump.
+#pragma push_macro("CHEAPINO_ENCODER_PUSH")
 #undef CHEAPINO_ENCODER_PUSH
 #define CHEAPINO_ENCODER_PUSH '*'
 #include "vanos_chordal_hold.h"
+#pragma pop_macro("CHEAPINO_ENCODER_PUSH")
 #include "vanos_thumb_hold.h"      // thumb tap-hold behaviour (Flow Tap exemption)
 #include "vanos_permissive_hold.h" // per-key Permissive Hold (bug 001: word-initial `la`)
 #include "vanos_encoder.h"         // layer-aware knob + push, status LED, pomodoro (owns process_record_user)

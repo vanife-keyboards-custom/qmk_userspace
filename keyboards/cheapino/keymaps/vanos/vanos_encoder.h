@@ -279,7 +279,9 @@ static uint32_t vanos_led_wanted(void) {
         on = (timer_elapsed32(led_flash_start) / VANOS_LED_FLASH_STEP_MS) % 2 == 0;
         return vanos_led_pack(led_flash_hue, 255, on ? VANOS_LED_VAL : 0);
     }
-    if (layer_state) {
+    // MEDIA carries the RGB keys: show the live colour there, so their effect
+    // is visible while the layer is held (no purple indicator).
+    if (layer_state && get_highest_layer(layer_state) != U_MEDIA) {
         return vanos_led_pack(vanos_layer_hue(get_highest_layer(layer_state)), 255, VANOS_LED_VAL);
     }
     if (vanos_layer_locked()) {
