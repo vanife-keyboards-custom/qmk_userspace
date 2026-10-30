@@ -32,13 +32,21 @@
 // the layer the *default* layer. Nothing else in Miryoku unlocks it except
 // another double-tap on the BASE lock, so the push is the quick way out.
 //
-// Brightness and layout need the host: the firmware only sends key chords, and
-// Hyprland binds them (docs/devices/cheapino/host/cheapino.lua):
-//   Ctrl + XF86MonBrightnessUp/Down      → cheapino-brightness-all +5% / 5%-
-//   Ctrl + Shift + XF86MonBrightnessUp   → cheapino-brightness-all 50%
-//   XF86Launch9 (F18)                    → "pomodoro done" notification
-// Layout switching reuses the existing Ctrl+Shift+7/8/9/6 binds in
-// ~/.config/hypr/input.lua, so it works without any new host config.
+// Brightness needs the host: the firmware only sends keys, and a host-side
+// helper binds them (docs/devices/cheapino/host/; installed with
+// `mise run install:cheapino-host` on Linux, install-cheapino-host.ps1 on Windows).
+// Plain F14–F18: no keyboard has them, both OSes can bind them, and unbound
+// they do nothing. (Ctrl+XF86MonBrightness* was the first choice, but Windows
+// handles the consumer brightness usages itself and cannot rebind them.)
+//
+//   key   Linux keysym   Linux (Hyprland)               Windows (AutoHotkey)
+//   F14   XF86Launch5    cheapino-brightness-all 5%-    Twinkle Tray --All --Offset=-5
+//   F15   XF86Launch6    cheapino-brightness-all +5%    Twinkle Tray --All --Offset=+5
+//   F16   XF86Launch7    cheapino-brightness-all 50%    Twinkle Tray --All --Set=50
+//   F18   XF86Launch9    "pomodoro done" notification   tray notification
+//
+// Layout switching sends Ctrl+Shift+7/8/9/6, which both machines already bind
+// (Hyprland: ~/.config/hypr/input.lua; Windows: input-language hotkeys).
 //
 // ── Status LED (the single WS2812 on the RP2040-Zero, left half) ─────────────
 //
@@ -79,6 +87,9 @@
 // Tapped once when a pomodoro ends, for a desktop notification. Comment out to
 // keep the firmware silent towards the host.
 #define VANOS_POMODORO_DONE_KEY KC_F18 // XF86Launch9 under XKB's evdev rules
+#define VANOS_KEY_BRIGHT_DOWN KC_F14   // see the host table in the header
+#define VANOS_KEY_BRIGHT_UP KC_F15
+#define VANOS_KEY_BRIGHT_MID KC_F16
 #define VANOS_LED_VAL 120             // indicator brightness, 0–255
 #define VANOS_LED_BOOT_QUIET_MS 3000  // leave the board's boot hue sweep alone
 
@@ -183,7 +194,7 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
             tap_code(clockwise ? MS_WHLD : MS_WHLU);
             break;
         case U_MEDIA: // brightness of every screen, via the host bind
-            tap_code16_delay(clockwise ? C(KC_BRIU) : C(KC_BRID), 10);
+            tap_code(clockwise ? VANOS_KEY_BRIGHT_UP : VANOS_KEY_BRIGHT_DOWN);
             break;
         case U_NUM:
             tap_code(clockwise ? KC_UP : KC_DOWN);
@@ -219,7 +230,7 @@ static void vanos_push_tap(void) {
             tap_code(MS_BTN3);
             break;
         case U_MEDIA:
-            tap_code16_delay(C(S(KC_BRIU)), 10);
+            tap_code(VANOS_KEY_BRIGHT_MID);
             break;
         default:
             tap_code_delay(KC_MPLY, 10);
