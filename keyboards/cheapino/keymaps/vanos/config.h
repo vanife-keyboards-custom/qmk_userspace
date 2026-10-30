@@ -14,9 +14,9 @@
 // LED colour order. The vendored board config sets WS2812_BYTE_ORDER_RGB (tompi's
 // RP2040-Zero), but the LED on our AliExpress clones is the standard GRB: with
 // RGB, red and green came out swapped (SYM's green showed red, FUN's orange
-// showed green; blue and yellow, symmetric in R/G, looked right). Observed on the
-// unit flashed 2026-10-30 — check the other unit too, a different clone batch
-// could differ. GRB is QMK's own default.
+// showed green; blue and yellow, symmetric in R/G, looked right). With GRB both
+// units show identical, correct colours (confirmed 2026-10-30). GRB is QMK's
+// own default.
 #undef WS2812_BYTE_ORDER
 #define WS2812_BYTE_ORDER WS2812_BYTE_ORDER_GRB
 
