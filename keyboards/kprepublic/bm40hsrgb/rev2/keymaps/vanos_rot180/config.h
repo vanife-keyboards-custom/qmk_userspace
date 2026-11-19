@@ -76,3 +76,8 @@
 // in the indicator colour — made for transparent thumb caps. +200 B. Comment out to keep
 // only the indicator LED(s) from VANOS_IND_LEDS in keymap.c.
 #define VANOS_IND_HOLD_KEY
+
+// While a layer is LOCKED, double-blink (every 2 s) the key to double-tap to get back to
+// Base, in WHITE at the indicator brightness (VANOS_IND_VAL, follows RGB_VAI). Comment out
+// to drop it.
+#define VANOS_IND_EXIT_HINT

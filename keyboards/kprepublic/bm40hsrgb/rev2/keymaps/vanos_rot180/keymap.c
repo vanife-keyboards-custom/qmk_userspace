@@ -40,8 +40,8 @@
 //    layer held .............. NAV cyan · MOUSE yellow · NUM blue · SYM green ·
 //                              FUN magenta · BUTTON white
 //    MEDIA held .............. the live RGB colour, so its RGB_HUI/SAI/VAI keys are visible
-//    base locked (Tap/Extra/   that layer's colour, slow blink (600 ms)
-//      Button via its TD key)
+//    layer locked ............ that layer's colour, slow blink (600 ms); and the key to
+//      (via its TD key)        double-tap for Base double-blinks white every 2 s (VANOS_IND_EXIT_HINT)
 //  Everything else on the board stays dark: the indicator blanks all 47 LEDs every frame.
 //
 //  Notes:
@@ -62,6 +62,7 @@
 #    define VANOS_IND_MIN_VAL 16   // never so dim that a held layer looks like "base"
 #    define VANOS_IND_BOOT_MS 1500 // power-up rainbow sweep
 #    define VANOS_IND_BLINK_MS 600 // locked-base blink half-period (same as the Cheapino)
+#    define VANOS_IND_HINT_MS 2000 // exit-hint double-blink repeats this often
 
 static const uint8_t vanos_ind_leds[] = VANOS_IND_LEDS;
 
@@ -144,6 +145,40 @@ bool rgb_matrix_indicators_user(void) {
         }
     }
 #    endif // VANOS_IND_HOLD_KEY
+
+    // EXIT HINT: while a layer is LOCKED (it replaced Base via its TD key), the key to
+    // double-tap to get back to Base blinks WHITE (indicator brightness) as a double-tap
+    // pattern: on-off-on, then dark, repeating every VANOS_IND_HINT_MS (2 s).
+    // Which key: the one whose keycode is Miryoku's TD(U_TD_U_BASE), searched in the
+    // locked layer itself (Nav/Mouse/Media -> R, Num/Sym/Fun -> U, on the hand that holds
+    // that layer). Tap and Extra have no Base key of their own (you hold a left thumb
+    // first), so the hint falls back to where Base sits on Nav (R). Searched rather than a
+    // table, so it follows the mapping. TD(U_TD_U_BASE) = QK_TAP_DANCE | (1 + U_BASE):
+    // Miryoku's enum is private to manna_harbour_miryoku.c and is U_TD_BOOT followed by
+    // one entry per layer in MIRYOKU_LAYER_LIST order.
+    // Flag: VANOS_IND_EXIT_HINT in config.h.
+#    ifdef VANOS_IND_EXIT_HINT
+    uint8_t  locked = get_highest_layer(default_layer_state);
+    uint16_t ph     = now % VANOS_IND_HINT_MS;
+    if (locked != U_BASE && now >= VANOS_IND_BOOT_MS && (ph < 150 || (ph >= 300 && ph < 450))) {
+        uint8_t hv = val; // white, same brightness as the indicator: follows RGB_VAI
+        uint8_t layers[2] = {locked, U_NAV};
+        for (uint8_t l = 0; l < 2; l++) {
+            bool found = false;
+            for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+                for (uint8_t colm = 0; colm < MATRIX_COLS; colm++) {
+                    uint8_t led = g_led_config.matrix_co[row][colm];
+                    if (led == NO_LED) continue;
+                    if (keymap_key_to_keycode(layers[l], (keypos_t){.row = row, .col = colm}) == (QK_TAP_DANCE | (1 + U_BASE))) {
+                        rgb_matrix_set_color(led, hv, hv, hv);
+                        found = true;
+                    }
+                }
+            }
+            if (found) break;
+        }
+    }
+#    endif // VANOS_IND_EXIT_HINT
     return false;
 }
 
