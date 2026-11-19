@@ -53,10 +53,13 @@ MIRYOKU_NAV    ?= INVERTEDT     # stock default: vi-style row
 #  it. Do not generalise from that case to these.)
 #
 #  Guarded on $(KEYMAP) so the stock `manna_harbour_miryoku` A/B reference build
-#  keeps Miryoku's feature set exactly as shipped.
+#  keeps Miryoku's feature set exactly as shipped. Matches `vanos` AND every
+#  `vanos_*` variant (e.g. the BM40's `vanos_rot180`): a variant is the vanos
+#  layout on a different physical mapping and must get the same feature set. An
+#  exact `vanos` match silently gave vanos_rot180 Auto Shift back (+954 B).
 # ═════════════════════════════════════════════════════════════════════════════
 
-ifeq ($(KEYMAP),vanos)
+ifneq ($(filter vanos vanos_%,$(KEYMAP)),)
 
   # Auto Shift — OFF. Long-pressing a key to get its shifted form; unused here.
   # Miryoku enables it, but nothing in the layout depends on it: no keycode, no
