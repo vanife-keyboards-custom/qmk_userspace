@@ -58,9 +58,17 @@ MIRYOKU_LAYER_LIST
 // manna_harbour_miryoku A/B build keeps upstream behaviour (i.e. no Caps Lock at all).
 const key_override_t capsword_key_override = ko_make_basic(MOD_MASK_SHIFT, CW_TOGG, KC_CAPS);
 
+// vanife addition: Shift + Vol-/Vol+/Stop -> brightness of all screens (vanos keymaps only).
+#if defined(VANOS_BRIGHTNESS_OVERRIDES)
+#    include "vanos_brightness.h"
+#endif
+
 // Array form (not pointer) so current QMK's ARRAY_SIZE()-based introspection counts it.
 const key_override_t *key_overrides[] = {
     &capsword_key_override,
+#if defined(VANOS_BRIGHTNESS_OVERRIDES)
+    VANOS_BRIGHTNESS_OVERRIDE_LIST
+#endif
 };
 
 
