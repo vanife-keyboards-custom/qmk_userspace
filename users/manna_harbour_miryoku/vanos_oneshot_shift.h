@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Based on Miryoku by Manna Harbour — https://github.com/manna-harbour/miryoku
 
-// vanos — tap behaviour of the one-shot Shift thumb (VANOS_OSSFT_MOU) and its
+// vanos — tap behaviour of the one-shot Shift thumb (VANOS_OSSFT_FUN) and its
 // on/off toggle (VANOS_OSSFT_TOGG). The keys, the layer tables and the rationale
 // live in vanos_oneshot_layers.h.
 //
@@ -16,7 +16,7 @@
 // ── On/off ───────────────────────────────────────────────────────────────────
 // Bit 0 of the user EEPROM word (eeconfig_*_user; nothing else in vanos uses
 // it) stores "one-shot Shift DISABLED", so a fresh or reset EEPROM (all zeros)
-// means ON. Off = the thumb tap sends plain Tab, i.e. stock Tab•Mou. It is read
+// means ON. Off = the thumb tap sends plain Del, i.e. stock Del•Fun. It is read
 // lazily on the first relevant key, so no keyboard_post_init_user() is needed
 // (BM40 rot180 and the Corne already define one). eeconfig_update_user() only
 // writes on change, and the toggle is a rare manual action, so flash wear is a
@@ -25,7 +25,7 @@
 #pragma once
 
 #include "quantum.h"
-#include "manna_harbour_miryoku.h" // U_MOUSE (used by VANOS_OSSFT_MOU)
+#include "manna_harbour_miryoku.h" // U_FUN (used by VANOS_OSSFT_FUN)
 
 #define VANOS_OSSFT_EE_DISABLED (1UL << 0)
 
@@ -54,15 +54,15 @@ static inline bool vanos_oneshot_shift_process_record(uint16_t keycode, keyrecor
         if (record->event.pressed) vanos_oneshot_shift_toggle();
         return false;
     }
-    if (keycode != VANOS_OSSFT_MOU || record->tap.count == 0) {
+    if (keycode != VANOS_OSSFT_FUN || record->tap.count == 0) {
         return true; // not ours, or the hold (Mouse layer): QMK handles it
     }
     if (!vanos_oneshot_shift_enabled()) {
-        // Off: behave exactly like stock LT(U_MOUSE, KC_TAB).
+        // Off: behave exactly like stock LT(U_FUN, KC_DEL).
         if (record->event.pressed) {
-            register_code(KC_TAB);
+            register_code(KC_DEL);
         } else {
-            unregister_code(KC_TAB);
+            unregister_code(KC_DEL);
         }
         return false;
     }

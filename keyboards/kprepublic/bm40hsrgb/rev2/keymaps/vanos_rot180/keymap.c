@@ -103,12 +103,26 @@ bool rgb_matrix_indicators_user(void) {
     uint8_t col = 0;
     uint8_t top = get_highest_layer(layer_state);
 
+    // Typing states come from users/…/vanos_status.h and are compiled in only when
+    // config.h switches them on (VANOS_IND_ONESHOT / _CAPS_WORD / _MEDIA / _MODS);
+    // all are off on the BM40 today, so the branches below fold away.
     if (now < VANOS_IND_BOOT_MS) {
         c = hsv_to_rgb((hsv_t){(uint8_t)(now * 255 / VANOS_IND_BOOT_MS), 255, val});
+    } else if (vanos_ind_oneshot()) {
+        col = vanos_ind_fast_blink(now) ? (4 | 2 | 1) : 0; // white, fast blink
+    } else if (vanos_ind_caps_word()) {
+        col = vanos_ind_double_blink(now) ? (4 | 2 | 1) : 0; // white, double blink
     } else if (layer_state && top == U_MEDIA) {
-        c = hsv_to_rgb((hsv_t){rgb_matrix_get_hue(), rgb_matrix_get_sat(), val});
+        // Live colour, so the RGB keys' effect shows; blinks until one is used
+        // when VANOS_IND_MEDIA is on (otherwise steady, as before).
+        if (!vanos_ind_media_held() || !vanos_ind_media_blinking() || vanos_ind_media_blink(now)) {
+            c = hsv_to_rgb((hsv_t){rgb_matrix_get_hue(), rgb_matrix_get_sat(), val});
+        }
     } else if (layer_state && top != U_BASE) {
         col = vanos_layer_col(top);
+    } else if (vanos_ind_mods()) {
+        uint8_t dim = val / 3 < VANOS_IND_MIN_VAL ? VANOS_IND_MIN_VAL : val / 3;
+        c           = (rgb_t){dim, dim, dim}; // dim white
     } else if (get_highest_layer(default_layer_state) != U_BASE && (now / VANOS_IND_BLINK_MS) % 2 == 0) {
         col = vanos_layer_col(get_highest_layer(default_layer_state));
     }

@@ -52,8 +52,14 @@
 // ── Status LED (the single WS2812 on the RP2040-Zero, left half) ─────────────
 //
 //   pomodoro alarm     red, fast flash, until acknowledged (gives up after 15 min)
+//   one-shot Shift     white, fast blink (100 ms)          ┐ vanos_status.h; each
+//   Caps Word          white, double blink every 1 s       │ one only if switched
 //   layer held         solid layer colour: NAV cyan, MOUSE yellow, NUM blue,
-//                      SYM green, FUN magenta, BUTTON white (MEDIA: live colour)
+//                      SYM green, FUN magenta, BUTTON white
+//   MEDIA held         your live colour, blinking (250 ms) │ on in config.h
+//                      until you press an RGB key, then steady
+//   Gui/Alt/Ctrl held  dim white                           ┘
+//   one-shot toggle    green 2 blinks = on, red 2 blinks = off (Media + H)
 //   layer locked       layer colour, slow blink
 //   pomodoro running   your normal colour + a short red blip every 5 s
 //   FUN rotate         the new length as white blinks, N × 5 min (25 min = 5)
@@ -152,13 +158,30 @@ static void vanos_led_flash(uint8_t col, uint8_t count, uint16_t solid_ms) {
 // far brighter than red and blue at the same duty, which made yellow and cyan
 // read as green: scale green and blue by FastLED's TypicalSMD5050 correction
 // (0xFFB0F0, i.e. G×176/255, B×240/255).
-static uint32_t vanos_led_rgb(uint8_t col, bool on) {
-    if (!on) return 0;
-    uint8_t r = (col & COL_R) ? vanos_user_val : 0;
-    uint8_t g = (col & COL_G) ? (uint16_t)vanos_user_val * 176 / 255 : 0;
-    uint8_t b = (col & COL_B) ? (uint16_t)vanos_user_val * 240 / 255 : 0;
+static uint32_t vanos_led_rgb_val(uint8_t col, uint8_t val) {
+    uint8_t r = (col & COL_R) ? val : 0;
+    uint8_t g = (col & COL_G) ? (uint16_t)val * 176 / 255 : 0;
+    uint8_t b = (col & COL_B) ? (uint16_t)val * 240 / 255 : 0;
     return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
 }
+
+static uint32_t vanos_led_rgb(uint8_t col, bool on) {
+    return on ? vanos_led_rgb_val(col, vanos_user_val) : 0;
+}
+
+// Typing-state colours (vanos_status.h decides WHEN, these decide the colour).
+// White is shared with BUTTON/TAP/EXTRA, but the patterns differ: layers are
+// solid, locks blink slowly, one-shot blinks fast, Caps Word double-blinks,
+// mods are dim.
+#ifndef VANOS_IND_ONESHOT_COL
+#    define VANOS_IND_ONESHOT_COL COL_WHITE
+#endif
+#ifndef VANOS_IND_CAPS_WORD_COL
+#    define VANOS_IND_CAPS_WORD_COL COL_WHITE
+#endif
+#ifndef VANOS_IND_MODS_COL
+#    define VANOS_IND_MODS_COL COL_WHITE
+#endif
 
 // The layer the knob acts on: the highest momentary layer, else the default
 // layer (which is where a Miryoku double-tap lock puts it).
@@ -259,7 +282,14 @@ static void vanos_push_tap(void) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (!vanos_oneshot_shift_process_record(keycode, record)) return false; // vanos_oneshot_shift.h
+    vanos_status_process_record(keycode, record); // vanos_status.h: Media "RGB key used" flag
+    if (!vanos_oneshot_shift_process_record(keycode, record)) {
+        // Confirm the one-shot Shift toggle: green 2 blinks = on, red 2 blinks = off.
+        if (keycode == VANOS_OSSFT_TOGG && record->event.pressed) {
+            vanos_led_flash(vanos_oneshot_shift_enabled() ? COL_GREEN : COL_RED, 2, 0);
+        }
+        return false;
+    }
     if (keycode != VANOS_ENC_PUSH) return true;
 
     if (record->event.pressed) {
@@ -316,10 +346,24 @@ static uint32_t vanos_led_wanted(void) {
         on = led_flash_count == 0 || (timer_elapsed32(led_flash_start) / VANOS_LED_FLASH_STEP_MS) % 2 == 0;
         return vanos_led_rgb(led_flash_col, on);
     }
+    // Typing states (vanos_status.h; each one only if config.h switches it on).
+    if (vanos_ind_oneshot()) {
+        return vanos_led_rgb(VANOS_IND_ONESHOT_COL, vanos_ind_fast_blink(now));
+    }
+    if (vanos_ind_caps_word()) {
+        return vanos_led_rgb(VANOS_IND_CAPS_WORD_COL, vanos_ind_double_blink(now));
+    }
     // MEDIA carries the RGB keys: show the live colour there, so their effect
-    // is visible while the layer is held.
+    // is visible while the layer is held. With VANOS_IND_MEDIA it blinks until
+    // the first RGB key, so Media no longer looks like Base.
     if (layer_state && get_highest_layer(layer_state) != U_MEDIA) {
         return vanos_led_rgb(vanos_layer_col(get_highest_layer(layer_state)), true);
+    }
+    if (vanos_ind_media_held()) {
+        return (!vanos_ind_media_blinking() || vanos_ind_media_blink(now)) ? LED_USER : 0;
+    }
+    if (vanos_ind_mods()) {
+        return vanos_led_rgb_val(VANOS_IND_MODS_COL, vanos_user_val / 3 < VANOS_LED_MIN_VAL ? VANOS_LED_MIN_VAL : vanos_user_val / 3);
     }
     if (vanos_layer_locked()) {
         return vanos_led_rgb(vanos_layer_col(get_highest_layer(default_layer_state)), (now / 600) % 2 == 0);

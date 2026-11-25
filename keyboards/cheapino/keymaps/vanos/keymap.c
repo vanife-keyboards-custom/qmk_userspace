@@ -21,7 +21,8 @@
 #pragma pop_macro("CHEAPINO_ENCODER_PUSH")
 #include "vanos_thumb_hold.h"      // thumb tap-hold behaviour (Flow Tap exemption)
 #include "vanos_permissive_hold.h" // per-key Permissive Hold (bug 001: word-initial `la`)
-#include "vanos_oneshot_shift.h"   // Tab•Mou thumb tap → one-shot Shift / Caps Word (vanos_oneshot_layers.h)
+#include "vanos_oneshot_shift.h"   // Del•Fun thumb tap → one-shot Shift / Caps Word (vanos_oneshot_layers.h)
+#include "vanos_status.h"          // typing-state indicators (one-shot, Caps Word, Media, mods) — switches in config.h
 #include "vanos_encoder.h"         // layer-aware knob + push, status LED, pomodoro (owns process_record_user)
 // DISABLED ON OS LEVEL — Caps Lock is remapped away by the desktop, so the firmware
 // fix has no observable effect on this machine. Hyprland ships `kb_options =

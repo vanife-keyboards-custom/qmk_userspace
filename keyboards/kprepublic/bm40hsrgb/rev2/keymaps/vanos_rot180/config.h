@@ -81,3 +81,10 @@
 // Base, in WHITE at the indicator brightness (VANOS_IND_VAL, follows RGB_VAI). Comment out
 // to drop it.
 #define VANOS_IND_EXIT_HINT
+
+// Typing-state indicators on the indicator LED(s) (users/…/vanos_status.h). Wired but
+// NOT switched on yet (configured on the Cheapino first, 2026-11-25). Uncomment to use:
+//#define VANOS_IND_ONESHOT   // one-shot Shift pending: white, fast blink
+//#define VANOS_IND_CAPS_WORD // Caps Word on: white, double blink
+//#define VANOS_IND_MEDIA     // Media held: live colour blinks until an RGB key is pressed
+//#define VANOS_IND_MODS      // Gui/Alt/Ctrl held: dim white

@@ -11,11 +11,13 @@
 #include "vanos_chordal_hold.h"
 #include "vanos_thumb_hold.h"      // thumb tap-hold behaviour (Flow Tap exemption)
 #include "vanos_permissive_hold.h" // per-key Permissive Hold (bug 001: word-initial `la`)
-#include "vanos_oneshot_shift.h"   // Tab•Mou thumb tap → one-shot Shift / Caps Word (vanos_oneshot_layers.h)
+#include "vanos_oneshot_shift.h"   // Del•Fun thumb tap → one-shot Shift / Caps Word (vanos_oneshot_layers.h)
+#include "vanos_status.h"          // typing-state indicators; all switched off on the BM40 today (rot180 draws them)
 
 // Shared by vanos_rot180, which #includes this file. If vanos_caps_lock.h is ever
 // re-enabled, merge its process_record_user into this one.
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    vanos_status_process_record(keycode, record); // no-op unless VANOS_IND_MEDIA
     return vanos_oneshot_shift_process_record(keycode, record);
 }
 

@@ -38,3 +38,11 @@
 // VIA defaults to 4 dynamic layers; layers beyond it read as KC_NO. Miryoku needs all
 // of them (stock Miryoku's 10; no FLAT layer on the Cheapino). RP2040: 4 KB emulated EEPROM; 10 layers × 8×12 matrix × 2 B = 1920 B (measured: keymaps = 0x780).
 #define DYNAMIC_KEYMAP_LAYER_COUNT 10
+
+// ── Typing-state indicators on the status LED (users/…/vanos_status.h) ───────
+// Comment a line out to drop that indicator. Colours: VANOS_IND_*_COL in
+// vanos_encoder.h (COL_WHITE by default; patterns tell the states apart).
+#define VANOS_IND_ONESHOT   // one-shot Shift pending: white, fast blink
+#define VANOS_IND_CAPS_WORD // Caps Word on: white, double blink
+#define VANOS_IND_MEDIA     // Media held: live colour blinks until an RGB key is pressed
+#define VANOS_IND_MODS      // Gui/Alt/Ctrl held: dim white (add Shift via VANOS_IND_MODS_MASK)

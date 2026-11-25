@@ -73,7 +73,7 @@
 // lives in its own file instead of inline here.
 #include "vanos_mouse.h"
 
-// ── Base layer override (Tab•Mou thumb → one-shot Shift•Mou) ─────────────────
+// ── Base layer override (Del•Fun thumb → one-shot Shift•Fun) ─────────────────
 // Same mechanism as the Mouse override above: defines MIRYOKU_LAYER_BASE before
 // Miryoku's own selection runs. The tap is handled by vanos_oneshot_shift.h,
 // which every vanos keymap.c must call from process_record_user().
