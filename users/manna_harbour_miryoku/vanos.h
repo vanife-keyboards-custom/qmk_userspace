@@ -62,8 +62,17 @@
 #undef MOUSEKEY_MOVE_DELTA
 #define MOUSEKEY_MOVE_DELTA 4
 
+// ── Screen brightness: Shift + Vol-/Vol+/Stop on the Media layer ─────────────
+// Key overrides that send F14/F15/F16, the keys the Cheapino knob already sends on
+// its MEDIA layer. See vanos_brightness.h. Comment out to drop it.
+#define VANOS_BRIGHTNESS_OVERRIDES
+
 // ── Mouse layer acceleration override (T/G/B → MS_ACL2/MS_ACL1/MS_ACL0) ──────
 // Must define MIRYOKU_LAYER_MOUSE before miryoku_layer_selection.h runs its own
 // `#if !defined(MIRYOKU_LAYER_MOUSE)` selection — see vanos_mouse.h for why this
 // lives in its own file instead of inline here.
 #include "vanos_mouse.h"
+
+// ── Media layer override (screen brightness on M , . → F14/F16/F15) ──────────
+// Same pattern as the Mouse layer above; see vanos_media.h.
+#include "vanos_media.h"
