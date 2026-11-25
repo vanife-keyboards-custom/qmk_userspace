@@ -15,12 +15,15 @@
 //     y        u        i        o        p
 //     RGBtog   RGBmod   Vol+     RGBhue+  RGBsat+
 //     h        j        k        l        '
-//     ···      Prev     Vol-     Next     RGBval+
+//     OSSftTg  Prev     Vol-     Next     RGBval+    <- H: one-shot Shift on/off
 //     n        m        ,        .        /
 //     OutAuto  Bri-     Bri50    Bri+     ···        <- new: M , .
 //
 // Bri-/Bri+ sit under Prev/Next, Bri50 under Vol-. No modifier needed: hold the Esc
 // thumb, tap with the right hand. Additive: no existing position changes.
+//
+// H is VANOS_OSSFT_TOGG, the one-shot Shift on/off toggle — defined and documented in
+// vanos_oneshot_layers.h, which vanos.h includes before this file.
 //
 // The keys are F14/F15/F16, the ones the Cheapino knob already sends on its MEDIA
 // layer (keyboards/cheapino/keymaps/vanos/vanos_encoder.h has the host table:
@@ -32,12 +35,16 @@
 
 #pragma once
 
+#if !defined(MIRYOKU_NAV_INVERTEDT)
+#    error "vanos_media.h hardcodes the INVERTEDT Media layer; update it for the new MIRYOKU_NAV"
+#endif
+
 #define VANOS_KEY_BRIGHT_DOWN KC_F14 // XF86Launch5 under XKB's evdev rules
 #define VANOS_KEY_BRIGHT_UP KC_F15   // XF86Launch6
 #define VANOS_KEY_BRIGHT_MID KC_F16  // XF86Launch7
 
 #define MIRYOKU_LAYER_MEDIA \
 TD(U_TD_BOOT),     TD(U_TD_U_TAP),    TD(U_TD_U_EXTRA),  TD(U_TD_U_BASE),   U_NA,              RGB_TOG,           RGB_MOD,           KC_VOLU,           RGB_HUI,           RGB_SAI,           \
-KC_LGUI,           KC_LALT,           KC_LCTL,           KC_LSFT,           U_NA,              U_NU,              KC_MPRV,           KC_VOLD,           KC_MNXT,           RGB_VAI,           \
+KC_LGUI,           KC_LALT,           KC_LCTL,           KC_LSFT,           U_NA,              VANOS_OSSFT_TOGG,  KC_MPRV,           KC_VOLD,           KC_MNXT,           RGB_VAI,           \
 U_NA,              KC_ALGR,           TD(U_TD_U_FUN),    TD(U_TD_U_MEDIA),  U_NA,              OU_AUTO,           VANOS_KEY_BRIGHT_DOWN, VANOS_KEY_BRIGHT_MID, VANOS_KEY_BRIGHT_UP, U_NU,       \
 U_NP,              U_NP,              U_NA,              U_NA,              U_NA,              KC_MSTP,           KC_MPLY,           KC_MUTE,           U_NP,              U_NP

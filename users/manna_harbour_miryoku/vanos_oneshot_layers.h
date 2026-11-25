@@ -74,20 +74,10 @@ U_NP,              U_NP,              LT(U_MEDIA,KC_ESC),LT(U_NAV,KC_SPC),  VANO
 //
 // VANOS_OSSFT_TOGG switches the thumb between one-shot Shift (default) and stock
 // Tab•Mou. Stored in EEPROM (vanos_oneshot_shift.h), so it survives a replug.
-// It sits on the INVERTEDT Media layer's only free home-row slot (U_NU at H),
-// mirroring Caps Word at Nav + H. Body = MIRYOKU_ALTERNATIVES_MEDIA_INVERTEDT
-// verbatim except that one key. Same ⚠ limitation as the Mouse override: it
-// hardcodes INVERTEDT, non-flipped.
+// It sits on the Media layer's only free home-row slot (U_NU at H), mirroring
+// Caps Word at Nav + H. The Media layer itself is defined once, in vanos_media.h
+// (it also carries the brightness keys); vanos.h includes that file after this
+// one, so VANOS_OSSFT_TOGG is defined by the time the layer is.
 //
 // QK_USER_1: QK_USER_0 is taken by the Cheapino encoder push (VANOS_ENC_PUSH).
 #define VANOS_OSSFT_TOGG QK_USER_1
-
-#if !defined(MIRYOKU_NAV_INVERTEDT)
-#    error "vanos_oneshot_layers.h hardcodes the INVERTEDT Media layer; update it for the new MIRYOKU_NAV"
-#endif
-
-#define MIRYOKU_LAYER_MEDIA \
-TD(U_TD_BOOT),     TD(U_TD_U_TAP),    TD(U_TD_U_EXTRA),  TD(U_TD_U_BASE),   U_NA,              RGB_TOG,           RGB_MOD,           KC_VOLU,           RGB_HUI,           RGB_SAI,           \
-KC_LGUI,           KC_LALT,           KC_LCTL,           KC_LSFT,           U_NA,              VANOS_OSSFT_TOGG,  KC_MPRV,           KC_VOLD,           KC_MNXT,           RGB_VAI,           \
-U_NA,              KC_ALGR,           TD(U_TD_U_FUN),    TD(U_TD_U_MEDIA),  U_NA,              OU_AUTO,           U_NU,              U_NU,              U_NU,              U_NU,              \
-U_NP,              U_NP,              U_NA,              U_NA,              U_NA,              KC_MSTP,           KC_MPLY,           KC_MUTE,           U_NP,              U_NP
