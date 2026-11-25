@@ -42,6 +42,11 @@
 // ── Typing-state indicators on the status LED (users/…/vanos_status.h) ───────
 // Comment a line out to drop that indicator. Colours: VANOS_IND_*_COL in
 // vanos_encoder.h (COL_WHITE by default; patterns tell the states apart).
+// Too bright? First lower the saved brightness on the board (Media + Shift +
+// RGBval+), since the indicators follow it. If white is still too strong, pick
+// a single-channel colour here instead: white lights R, G and B together, so
+// it looks brighter than the layer colours at the same level. E.g.
+//   #define VANOS_IND_ONESHOT_COL COL_BLUE   (COL_* list: vanos_encoder.h)
 #define VANOS_IND_ONESHOT   // one-shot Shift pending: white, fast blink
 #define VANOS_IND_CAPS_WORD // Caps Word on: white, double blink
 #define VANOS_IND_MEDIA     // Media held: live colour blinks until an RGB key is pressed
