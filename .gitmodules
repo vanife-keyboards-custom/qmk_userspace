@@ -1,0 +1,3 @@
+[submodule "modules/srwi"]
+	path = modules/srwi
+	url = https://github.com/srwi/qmk-modules

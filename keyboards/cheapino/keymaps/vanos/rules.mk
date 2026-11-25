@@ -8,3 +8,9 @@
 # stays on; Miryoku's RGB keycodes on the Media layer drive it — but only
 # because config.h re-shims them to UG_* (the userspace sends them to RGB Matrix).
 USER_NAME = manna_harbour_miryoku
+
+# On-screen viewer (KeyPeek, see kboards docs/KEYPEEK-REVIEW.md): VIA lets the viewer
+# read the keymap, raw HID carries the live layer/key stream from the module in
+# keymap.json. VIA's EEPROM keymap resets to this compiled keymap at every flash.
+RAW_ENABLE = yes
+VIA_ENABLE = yes
