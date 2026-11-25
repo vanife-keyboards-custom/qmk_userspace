@@ -259,6 +259,7 @@ static void vanos_push_tap(void) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (!vanos_oneshot_shift_process_record(keycode, record)) return false; // vanos_oneshot_shift.h
     if (keycode != VANOS_ENC_PUSH) return true;
 
     if (record->event.pressed) {

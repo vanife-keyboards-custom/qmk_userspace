@@ -11,6 +11,14 @@
 #include "vanos_chordal_hold.h"
 #include "vanos_thumb_hold.h"      // thumb tap-hold behaviour (Flow Tap exemption)
 #include "vanos_permissive_hold.h" // per-key Permissive Hold (bug 001: word-initial `la`)
+#include "vanos_oneshot_shift.h"   // Tab•Mou thumb tap → one-shot Shift / Caps Word (vanos_oneshot_layers.h)
+
+// Shared by vanos_rot180, which #includes this file. If vanos_caps_lock.h is ever
+// re-enabled, merge its process_record_user into this one.
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    return vanos_oneshot_shift_process_record(keycode, record);
+}
+
 // DISABLED ON OS LEVEL — Caps Lock is remapped away by the desktop, so the firmware
 // fix has no observable effect on this machine. Hyprland ships `kb_options =
 // compose:caps` (~/.local/share/omarchy/default/hypr/input.conf:6), which XKB turns

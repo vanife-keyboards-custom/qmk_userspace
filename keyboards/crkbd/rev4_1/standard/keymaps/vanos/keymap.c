@@ -18,6 +18,7 @@
 #include "vanos_split_watchdog.h"  // slave half reboots itself if the master goes quiet
 #include "vanos_flat.h"            // Mode B flat layer: persistent Flat† toggle, exit chord, LED (docs/MODE-B-KANATA.md)
                                    // (split boards only — inert without SPLIT_KEYBOARD)
+#include "vanos_oneshot_shift.h"   // Tab•Mou thumb tap → one-shot Shift / Caps Word (vanos_oneshot_layers.h)
 // DISABLED ON OS LEVEL — Caps Lock is remapped away by the desktop, so the firmware
 // fix has no observable effect on this machine. Hyprland ships `kb_options =
 // compose:caps` (~/.local/share/omarchy/default/hypr/input.conf:6), which XKB turns
@@ -173,5 +174,6 @@ void matrix_scan_user(void) {
 // Only this file may define process_record_user. If vanos_caps_lock.h is ever
 // re-enabled (it defines its own), fold its body in here instead.
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (!vanos_oneshot_shift_process_record(keycode, record)) return false;
     return vanos_flat_process_record(keycode, record);
 }
